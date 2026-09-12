@@ -22,7 +22,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     // Access token: 1 hour, Refresh token: 7 days
     private static final long ACCESS_TOKEN_VALIDITY_MS = 3600 * 1000L;
-    private static final long REFRESH_TOKEN_VALIDITY_MS = 7 * 24 * 3600 * 1000L;
+    private static final long REFRESH_TOKEN_VALIDITY_MS = 14 * 24 * 3600 * 1000L;
 
     public JwtTokenProviderImpl() {
     }
