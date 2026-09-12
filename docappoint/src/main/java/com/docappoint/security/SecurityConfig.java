@@ -35,7 +35,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/register", "/login")
+                                .requestMatchers(
+                                        "/register",
+                                        "/register/doctor",
+                                        "/login",
+                                        "/auth/refresh"
+                                )
                                 .permitAll()
 
                                 // Patient endpoints

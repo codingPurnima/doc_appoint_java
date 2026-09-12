@@ -1,5 +1,6 @@
 package com.docappoint.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,6 +26,7 @@ public class User {
     @Column(name = "phone", length = 10, unique = true, nullable = false)
     private String phone;
 
+    @JsonIgnore
     @Column(name = "hashed_password", length = 255, nullable = false)
     private String hashedPassword;
 

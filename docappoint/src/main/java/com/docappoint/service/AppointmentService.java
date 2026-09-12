@@ -35,6 +35,12 @@ public class AppointmentService {
         Slot slot = slotRepository.findByIdForUpdate(request.slotId())
                 .orElseThrow(() -> new IllegalArgumentException("Slot not found with ID: " + request.slotId()));
 
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalTime now = java.time.LocalTime.now();
+        if (slot.getDate().isBefore(today) || (slot.getDate().isEqual(today) && slot.getStartTime().isBefore(now))) {
+            throw new IllegalStateException("Cannot book an appointment for a slot that has already passed");
+        }
+
         if (slot.getStatus() != Status.available) {
             throw new IllegalStateException("Slot is not available for booking (current status: " + slot.getStatus() + ")");
         }
@@ -73,8 +79,14 @@ public class AppointmentService {
             throw new IllegalStateException("Only booked appointments can be completed");
         }
 
-        appointment.setStatus(Status.completed);
         Slot slot = appointment.getSlot();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalTime now = java.time.LocalTime.now();
+        if (slot.getDate().isAfter(today) || (slot.getDate().isEqual(today) && slot.getStartTime().isAfter(now))) {
+            throw new IllegalStateException("Cannot complete an appointment that is scheduled in the future");
+        }
+
+        appointment.setStatus(Status.completed);
         slot.setStatus(Status.completed);
         slotRepository.save(slot);
 
@@ -116,10 +128,16 @@ public class AppointmentService {
             throw new IllegalStateException("Cannot cancel an already completed appointment");
         }
 
+        Slot slot = appointment.getSlot();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalTime now = java.time.LocalTime.now();
+        if (slot.getDate().isBefore(today) || (slot.getDate().isEqual(today) && slot.getStartTime().isBefore(now))) {
+            throw new IllegalStateException("Cannot cancel an appointment that has already passed");
+        }
+
         appointment.setStatus(Status.cancelled);
 
         // Restore the slot to available so another patient can book it
-        Slot slot = appointment.getSlot();
         slot.setStatus(Status.available);
         slotRepository.save(slot);
 

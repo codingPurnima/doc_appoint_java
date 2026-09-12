@@ -5,8 +5,8 @@ import com.docappoint.entity.User;
 import com.docappoint.service.AuthService;
 import com.docappoint.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,15 +24,8 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(
-            @RequestHeader("Authorization") String authHeader) {
-        User currentUser = getAuthenticatedUser(authHeader);
+            @AuthenticationPrincipal String username) {
+        User currentUser = authService.getUserByUsername(username);
         return ResponseEntity.ok(userService.getCurrentUserDetails(currentUser));
-    }
-
-    private User getAuthenticatedUser(String authHeader) {
-        if (authHeader == null || authHeader.isBlank()) {
-            throw new SecurityException("Missing Authorization header");
-        }
-        return authService.getUserFromToken(authHeader);
     }
 }
