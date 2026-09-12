@@ -29,11 +29,33 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/register", "/login").permitAll()
-                                .anyRequest().authenticated())
+                                .requestMatchers("/register", "/login")
+                                .permitAll()
+
+                                // Patient endpoints
+                                .requestMatchers(
+                                        "/appointments/book",
+                                        "/appointments/me",
+                                        "/appointments/*/cancel"
+                                )
+                                .hasAuthority("ROLE_PATIENT")
+
+                                // Doctor endpoints
+                                .requestMatchers(
+                                        "/appointments/doctor",
+                                        "/appointments/*/complete"
+                                )
+                                .hasAuthority("ROLE_DOCTOR")
+
+                                .anyRequest()
+                                .authenticated()
+                )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

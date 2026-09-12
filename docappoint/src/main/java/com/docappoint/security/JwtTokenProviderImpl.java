@@ -65,14 +65,22 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
     @Override
     public String validateAccessTokenAndGetSubject(String accessToken) {
-        Claims claims = parseClaims(accessToken);
-        String type = claims.get("type", String.class);
-        if (!"access".equalsIgnoreCase(type)) {
-            throw new SecurityException("Invalid token type: expected access token");
-        }
+        Claims claims = parseAccessToken(accessToken);
         return claims.getSubject();
     }
 
+    @Override
+    public Claims parseAccessToken(String accessToken) {
+        Claims claims = parseClaims(accessToken);
+
+        String type = claims.get("type", String.class);
+
+        if (!"access".equalsIgnoreCase(type)) {
+            throw new SecurityException("Invalid token type: expected access token");
+        }
+
+        return claims;
+    }
     @Override
     public String validateRefreshTokenAndGetSubject(String refreshToken) {
         Claims claims = parseClaims(refreshToken);

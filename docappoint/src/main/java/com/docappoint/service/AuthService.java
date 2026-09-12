@@ -107,4 +107,10 @@ public class AuthService {
             throw new IllegalArgumentException("Phone number is already registered");
         }
     }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByName(username)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("User not found: " + username));
+    }
 }

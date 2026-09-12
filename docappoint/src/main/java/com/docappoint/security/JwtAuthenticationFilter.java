@@ -1,14 +1,17 @@
 package com.docappoint.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -27,27 +30,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader == null ||
+                !authorizationHeader.startsWith("Bearer ")) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.substring(7);
+        String token = authorizationHeader.substring(7).trim();
 
         try {
-            String username =
-                    jwtTokenProvider.validateAccessTokenAndGetSubject(token);
+            Claims claims = jwtTokenProvider.parseAccessToken(token);
+
+            String username = claims.getSubject();
+            String role = claims.get("role", String.class);
+
+            if (username == null || username.isBlank() ||
+                    role == null || role.isBlank()) {
+
+                throw new SecurityException("JWT is missing username or role");
+            }
+
+            String authority = "ROLE_" + role.toUpperCase();
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             username,
                             null,
-                            java.util.Collections.emptyList()
+                            Collections.singletonList(
+                                    new SimpleGrantedAuthority(authority)
+                            )
                     );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            
+            SecurityContextHolder.getContext()
+                    .setAuthentication(authentication);
 
         } catch (Exception e) {
             SecurityContextHolder.clearContext();

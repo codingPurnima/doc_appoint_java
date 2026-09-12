@@ -1,6 +1,7 @@
 package com.docappoint.security;
 
 import com.docappoint.entity.User;
+import io.jsonwebtoken.Claims;
 
 public interface JwtTokenProvider {
 
@@ -11,4 +12,6 @@ public interface JwtTokenProvider {
     String validateRefreshTokenAndGetSubject(String refreshToken);
 
     String validateAccessTokenAndGetSubject(String accessToken);
+
+    Claims parseAccessToken(String accessToken);
 }
