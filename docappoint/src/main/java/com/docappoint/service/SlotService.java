@@ -43,25 +43,28 @@ public class SlotService {
             throw new IllegalArgumentException("Cannot generate slots for past dates");
         }
 
+        LocalTime now = LocalTime.now();
+        boolean isToday = request.date().isEqual(today);
+        LocalTime currentStart = request.dayStart();
+
+        if (isToday && currentStart.isBefore(now)) {
+            currentStart = now;
+        }
+
+        if (currentStart.isAfter(request.dayEnd()) || currentStart.equals(request.dayEnd())) {
+            return List.of();
+        }
+
         List<Slot> existingSlots = slotRepository.findByDoctorAndDateOrderByStartTimeAsc(doctor, request.date());
 
         List<Slot> createdSlots = new ArrayList<>();
-        LocalTime currentStart = request.dayStart();
-        LocalTime now = LocalTime.now();
-        boolean isToday = request.date().isEqual(today);
-
+        
         while (true) {
             LocalTime currentEnd = currentStart.plusMinutes(request.slotDurationMinutes());
 
             // Stop if the slot end exceeds day_end or rolled over past midnight
             if (currentEnd.isAfter(request.dayEnd()) || currentEnd.isBefore(currentStart)) {
                 break;
-            }
-
-            // Prevent generation of past times for the current date
-            if (isToday && currentStart.isBefore(now)) {
-                currentStart = currentEnd;
-                continue;
             }
 
             // Handle break intervals: if candidate slot overlaps a break,

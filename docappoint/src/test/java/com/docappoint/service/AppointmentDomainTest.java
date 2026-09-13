@@ -297,4 +297,23 @@ class AppointmentDomainTest {
                 slotService.toggleFreezeSlot(doctor, 10)
         );
     }
+
+    @Test
+    void testGenerateSlotsStartsFromCurrentTimeForToday() {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        LocalTime start = now.minusMinutes(30);
+        LocalTime end = now.plusMinutes(90);
+
+        when(slotRepository.findByDoctorAndDateOrderByStartTimeAsc(doctor, today))
+                .thenReturn(List.of());
+        when(slotRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        SlotGenerateRequest request = new SlotGenerateRequest(today, start, end, 30, List.of());
+
+        List<Slot> created = slotService.generateSlots(doctor, request);
+
+        assertFalse(created.isEmpty());
+        assertTrue(created.stream().allMatch(slot -> !slot.getStartTime().isBefore(now)));
+    }
 }
